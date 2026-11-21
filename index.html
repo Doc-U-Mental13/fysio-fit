@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Fysio-Fit</title>
 <meta name="theme-color" content="#0f766e">
+<meta name="author" content="Wim Vanhastel (Gentyl), gemaakt met Claude (Anthropic)">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Fysio-Fit">
@@ -16,6 +17,8 @@
 body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;padding-bottom:80px}
 header{background:var(--accent);color:var(--accent-fg);padding:14px 16px;display:flex;justify-content:space-between;align-items:baseline;position:sticky;top:0;z-index:5}
 header h1{margin:0;font-size:1.25rem}
+header .door{font-size:.72rem;opacity:.85}
+.credit{margin-top:6px}
 main{max-width:760px;margin:0 auto;padding:12px}
 nav{position:fixed;bottom:0;left:0;right:0;background:var(--card);border-top:1px solid var(--line);display:flex;padding-bottom:env(safe-area-inset-bottom);z-index:5}
 nav button{flex:1;border:0;background:none;color:var(--muted);padding:12px 2px;font-size:.72rem;cursor:pointer}
@@ -50,13 +53,13 @@ th,td{text-align:left;padding:5px 4px;border-bottom:1px solid var(--line);vertic
 .chart{width:100%;height:auto;margin-top:6px}
 .up{color:#15803d}.down{color:#c2410c}
 footer{max-width:760px;margin:10px auto;padding:0 12px;color:var(--muted);font-size:.8rem}
-@media print{header,nav,.noprint,footer{display:none!important}body{background:#fff;color:#000;padding:0}.card{break-inside:avoid;border:1px solid #999}}
+@media print{header,nav,.noprint{display:none!important}body{background:#fff;color:#000;padding:0}.card{break-inside:avoid;border:1px solid #999}}
 </style>
 </head>
 <body>
-<header><h1>Fysio-Fit</h1><span id="hello"></span></header>
+<header><div><h1>Fysio-Fit</h1><div class="door">door Wim Vanhastel (Gentyl) met Claude</div></div><span id="hello"></span></header>
 <main id="view"></main>
-<footer>Algemene trainingssuggesties, geen medisch advies. Bij klachten eerst overleggen met een arts of kinesitherapeut.</footer>
+<footer><div class="noprint">Algemene trainingssuggesties, geen medisch advies. Bij klachten eerst overleggen met een arts of kinesitherapeut.</div><div class="credit">Fysio-Fit is gemaakt door Wim Vanhastel (Gentyl) met hulp van Claude, de AI-assistent van Anthropic.</div></footer>
 <nav id="nav"></nav>
 <script>
 (function(){
