@@ -1,0 +1,566 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Fysio-Fit</title>
+<meta name="theme-color" content="#0f766e">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Fysio-Fit">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%230f766e'/%3E%3Ctext x='50' y='66' font-size='52' text-anchor='middle' fill='white' font-family='Arial' font-weight='bold'%3EFF%3C/text%3E%3C/svg%3E">
+<style>
+:root{--bg:#f4f6f6;--fg:#1c2626;--card:#fff;--muted:#667;--accent:#0f766e;--accent-fg:#fff;--line:#d9e0e0;--warn:#b45309;--warnbg:#fef3c7}
+@media (prefers-color-scheme:dark){:root{--bg:#111716;--fg:#e8eeee;--card:#1b2423;--muted:#9aa8a8;--accent:#2dd4bf;--accent-fg:#06201d;--line:#2c3938;--warn:#fcd34d;--warnbg:#3a2f0a}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;padding-bottom:80px}
+header{background:var(--accent);color:var(--accent-fg);padding:14px 16px;display:flex;justify-content:space-between;align-items:baseline;position:sticky;top:0;z-index:5}
+header h1{margin:0;font-size:1.25rem}
+main{max-width:760px;margin:0 auto;padding:12px}
+nav{position:fixed;bottom:0;left:0;right:0;background:var(--card);border-top:1px solid var(--line);display:flex;padding-bottom:env(safe-area-inset-bottom);z-index:5}
+nav button{flex:1;border:0;background:none;color:var(--muted);padding:12px 2px;font-size:.78rem;cursor:pointer}
+nav button.on{color:var(--accent);font-weight:700;border-top:3px solid var(--accent);padding-top:9px}
+h2{font-size:1.15rem;margin:16px 0 8px}
+h3{font-size:1.02rem;margin:0 0 6px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px;margin:10px 0}
+.card.nu{border:2px solid var(--accent)}
+.muted{color:var(--muted);font-size:.88rem}
+.badge{background:var(--accent);color:var(--accent-fg);border-radius:8px;font-size:.7rem;padding:2px 7px;vertical-align:middle}
+button.b,button{font:inherit}
+.btn{background:var(--accent);color:var(--accent-fg);border:0;border-radius:10px;padding:9px 14px;cursor:pointer;margin:4px 4px 4px 0}
+.btn.alt{background:transparent;color:var(--accent);border:1px solid var(--accent)}
+.btn.rood{background:transparent;color:#c0392b;border:1px solid #c0392b}
+.btn.klein{padding:4px 10px;font-size:.85rem}
+input[type=text],input[type=date],select,textarea{font:inherit;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--fg)}
+label{display:block;margin:8px 0 3px;font-size:.9rem}
+.chk{display:inline-flex;align-items:center;gap:5px;margin:3px 12px 3px 0;font-size:.95rem}
+.chk input{width:18px;height:18px}
+.rij{display:flex;gap:8px;align-items:center;margin:4px 0}
+.rij>span{min-width:48px;font-size:.9rem}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+ol,ul{padding-left:20px;margin:6px 0}
+li{margin:7px 0}
+.uitleg{color:var(--muted);font-size:.85rem}
+.banner{background:var(--warnbg);color:var(--warn);border-radius:10px;padding:9px 12px;margin:10px 0;font-size:.9rem}
+table{width:100%;border-collapse:collapse;font-size:.9rem}
+th,td{text-align:left;padding:5px 4px;border-bottom:1px solid var(--line);vertical-align:top}
+.chart{width:100%;height:auto;margin-top:6px}
+.up{color:#15803d}.down{color:#c2410c}
+footer{max-width:760px;margin:10px auto;padding:0 12px;color:var(--muted);font-size:.8rem}
+@media print{header,nav,.noprint,footer{display:none!important}body{background:#fff;color:#000;padding:0}.card{break-inside:avoid;border:1px solid #999}}
+</style>
+</head>
+<body>
+<header><h1>Fysio-Fit</h1><span id="hello"></span></header>
+<main id="view"></main>
+<footer>Algemene trainingssuggesties, geen medisch advies. Bij klachten eerst overleggen met een arts of kinesitherapeut.</footer>
+<nav id="nav"></nav>
+<script>
+(function(){
+'use strict';
+var KEY='fysiofit-v1';
+var DAGEN=['Maandag','Dinsdag','Woensdag','Donderdag','Vrijdag','Zaterdag','Zondag'];
+var KORT=['ma','di','wo','do','vr','za','zo'];
+var BLESSURES=['schouder','elleboog','pols','nek','onderrug','heup','knie','enkel'];
+var GROEPEN=['benen','bil','kuiten','borst','rug','schouders','biceps','triceps','core'];
+var ZONE={benen:'onder',bil:'onder',kuiten:'onder',borst:'boven',rug:'boven',schouders:'boven',biceps:'boven',triceps:'boven',core:'core'};
+var MATERIAAL=[['loopband','Loopband'],['fiets','Koersfiets op rollen'],['halters','Halters met schijven'],['trap','Trap']];
+var TABS=[['schema','Schema'],['training','Training'],['voortgang','Voortgang'],['metingen','Metingen'],['oefeningen','Oefeningen'],['profiel','Profiel']];
+
+function E(id,naam,type,groep,mat,uit,uitleg,extra){var o={id:id,naam:naam,type:type,groep:groep,mat:mat,uit:uit,uitleg:uitleg};if(extra)for(var k in extra)o[k]=extra[k];return o;}
+var BASIS=[
+E('squat','Squat (lichaamsgewicht)','kracht','benen',[],['knie'],'Voeten schouderbreed, zit naar achteren alsof je op een stoel gaat zitten, rug recht, knieën boven de voeten.'),
+E('gobletsquat','Goblet squat met halter','kracht','benen',['halters'],['knie','onderrug'],'Houd een halter tegen de borst en zak door de knieën met rechte rug.'),
+E('lunge','Achterwaartse uitvalspas','kracht','benen',[],['knie','enkel','heup'],'Stap met één been naar achter en zak recht naar beneden, wissel van been.'),
+E('stepup','Step-ups op de trap','kracht','benen',['trap'],['knie','enkel','heup'],'Stap op een trede, duw jezelf volledig recht, stap terug en wissel van been.'),
+E('rdl','Roemeense deadlift met halters','kracht','bil',['halters'],['onderrug'],'Heupen naar achter schuiven met licht gebogen knieën en rechte rug, halters langs de benen.'),
+E('bilbrug','Bilbrug','kracht','bil',[],[],'Lig op je rug, knieën gebogen, duw de heupen omhoog en span de billen aan.'),
+E('clamshell','Clamshell (zijlig heupopening)','kracht','bil',[],['heup'],'Lig op je zij met gebogen knieën en open de bovenste knie zonder dat de heupen kantelen.'),
+E('kuit','Kuitheffen','kracht','kuiten',[],['enkel'],'Sta rechtop, kom langzaam op de tenen en zak weer gecontroleerd. Houd je vast aan een stoel.'),
+E('floorpress','Vloerpress met halters','kracht','borst',['halters'],['schouder','elleboog','pols'],'Lig op de vloer en duw de halters recht omhoog boven de borst.'),
+E('opdrukwand','Opdrukken tegen de muur','kracht','borst',[],['schouder','pols'],'Handen op borsthoogte tegen de muur, buig de ellebogen en duw weer weg.'),
+E('roei','Voorovergebogen roeien met halters','kracht','rug',['halters'],['onderrug'],'Buig vanuit de heupen met rechte rug en trek de halters naar de buik.'),
+E('roei1','Eenarmig roeien met halter (steun op stoel)','kracht','rug',['halters'],['schouder'],'Eén hand op een stoel, trek met de andere arm de halter naar de heup.'),
+E('press','Schouderpress met halters','kracht','schouders',['halters'],['schouder','nek'],'Duw de halters van schouderhoogte recht omhoog en zak gecontroleerd.'),
+E('zijwaarts','Zijwaarts heffen met halters','kracht','schouders',['halters'],['schouder'],'Til de armen met lichte halters zijwaarts tot schouderhoogte.'),
+E('shrug','Schouderophalen met halters','kracht','schouders',['halters'],['nek'],'Trek de schouders recht omhoog richting de oren en laat langzaam zakken.'),
+E('curl','Biceps curl met halters','kracht','biceps',['halters'],['elleboog','pols'],'Ellebogen langs het lichaam, buig de armen tot de halters bij de schouders komen.'),
+E('hamer','Hamer curl met halters','kracht','biceps',['halters'],['elleboog','pols'],'Zoals een curl maar met de handpalmen naar elkaar gericht.'),
+E('triover','Triceps extensie boven het hoofd','kracht','triceps',['halters'],['schouder','elleboog'],'Houd één halter met twee handen boven het hoofd en buig en strek de ellebogen.'),
+E('kick','Triceps kickback','kracht','triceps',['halters'],['elleboog','onderrug'],'Voorovergebogen, elleboog bij het lichaam, strek de onderarm naar achter.'),
+E('plank','Plank (op de knieën of de tenen)','kracht','core',[],['schouder','pols','onderrug'],'Steun op de onderarmen, lichaam in een rechte lijn en houd de spanning vast.',{tijd:true}),
+E('deadbug','Dead bug','kracht','core',[],[],'Lig op je rug, arm en tegenovergesteld been strekken afwisselend naar buiten met de onderrug op de grond.'),
+E('crunch','Crunch','kracht','core',[],['nek','onderrug'],'Lig op je rug met gebogen knieën en kom met de schouderbladen een stukje van de grond.'),
+E('birddog','Bird dog','kracht','core',[],['pols','knie'],'Op handen en knieën, strek tegelijk een arm en het tegenovergestelde been naar voren en achter.'),
+E('russian','Russian twist','kracht','core',[],['onderrug'],'Zittend, licht achterover, draai de romp links en rechts, eventueel met een halter.'),
+E('loop_wandel','Wandelen op de loopband','cardio','cardio',['loopband'],[],'Vlot doorstappen aan een tempo waarbij je nog kan praten.'),
+E('loop_helling','Wandelen met helling op de loopband','cardio','cardio',['loopband'],['knie','enkel'],'Zet de helling op 4 tot 8 procent en stap in een rustig tempo door.'),
+E('loop_interval','Intervallen op de loopband','cardio','cardio',['loopband'],['knie','enkel','heup','onderrug'],'5 min opwarmen, daarna afwisselend 1 min stevig en 2 min rustig, en 5 min uitlopen.'),
+E('fiets_duur','Rustig fietsen (duurtraining)','cardio','cardio',['fiets'],[],'Constant tempo waarbij je nog kan praten.'),
+E('fiets_interval','Fietsen met intervallen','cardio','cardio',['fiets'],['knie'],'5 min opwarmen, daarna afwisselend 1 min zwaarder en 2 min rustig, en 5 min uitfietsen.'),
+E('trap_cardio','Trap op en neer','cardio','cardio',['trap'],['knie','enkel','heup'],'Stap in een rustig tempo de trap op en neer. Houd de leuning vast.'),
+E('wandel_buiten','Wandelen buiten','cardio','cardio',[],[],'Stevig doorstappen in de buurt, zonder materiaal.'),
+E('s_quad','Quadriceps stretch (staand)','stretch','benen',[],['knie'],'Trek de hiel naar de bil en houd je vast aan een stoel.'),
+E('s_ham','Hamstring stretch (zittend)','stretch','benen',[],[],'Zittend met één been gestrekt, leun voorover met rechte rug.'),
+E('s_kuit','Kuitstretch tegen de muur','stretch','kuiten',[],[],'Eén voet achter, hiel op de grond, leun naar de muur.'),
+E('s_heup','Heupbuiger stretch','stretch','bil',[],['knie'],'Halve knielende houding, schuif de heup naar voren.'),
+E('s_bil','Bilspier stretch (liggend)','stretch','bil',[],['heup','knie'],'Lig op je rug, enkel op de andere knie, trek het been naar je toe.'),
+E('s_borst','Borststretch in een deuropening','stretch','borst',[],['schouder'],'Onderarm tegen de deurstijl en draai de borst voorzichtig weg.'),
+E('s_kat','Kat-kameel (bovenrug)','stretch','rug',[],['pols','knie'],'Op handen en knieën, wissel rond en hol de rug.'),
+E('s_kind','Kindhouding','stretch','rug',[],['knie'],'Zit op de hielen en strek de armen voor je uit op de grond.'),
+E('s_schouder','Schouderstretch (arm over de borst)','stretch','schouders',[],['schouder'],'Trek één arm met de andere hand voorzichtig over de borst.'),
+E('s_nek','Nekstretch zijwaarts','stretch','schouders',[],['nek'],'Oor richting de schouder, de andere schouder laten zakken.'),
+E('s_tri','Triceps stretch','stretch','triceps',[],['schouder'],'Hand achter het hoofd tussen de schouderbladen, duw de elleboog zachtjes naar achter.'),
+E('s_bi','Biceps stretch tegen de muur','stretch','biceps',[],['schouder','elleboog'],'Hand plat tegen de muur met gestrekte arm en draai het lichaam weg.'),
+E('s_knie','Onderrug: knieën naar de borst','stretch','core',[],[],'Lig op de rug en trek beide knieën zacht naar de borst.'),
+E('s_sfinx','Buikstretch (sfinx)','stretch','core',[],['onderrug'],'Lig op de buik en steun op de onderarmen met de borst omhoog.')
+];
+
+function standaard(){return{
+ profiel:{naam:'Erwin',lengte:'',doelen:{conditie:true,afvallen:true,spieropbouw:true},jpDagen:[2,4],thuisAantal:3,thuisDagen:[],blessures:[],blessureNotitie:'',materiaal:{loopband:true,fiets:true,halters:true,trap:false},halter:{baar:1,aantal:2,schijven:''},aantalOef:6,cardioMin:30},
+ seed:1,eigen:[],uit:[],metingen:[],trainingen:[],laatsteExport:''
+};}
+var S=laad();
+function laad(){
+ var s=null,d=standaard();
+ try{s=JSON.parse(localStorage.getItem(KEY)||'null');}catch(e){}
+ if(!s)return d;
+ var sp=s.profiel||{};
+ var p=Object.assign({},d.profiel,sp);
+ p.doelen=Object.assign({},d.profiel.doelen,sp.doelen||{});
+ p.materiaal=Object.assign({},d.profiel.materiaal,sp.materiaal||{});
+ p.halter=Object.assign({},d.profiel.halter,sp.halter||{});
+ var r=Object.assign({},d,s);r.profiel=p;
+ return r;
+}
+var opslagOk=true;
+function bewaar(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){opslagOk=false;}}
+
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+function num(s){var n=parseFloat(String(s==null?'':s).replace(',','.'));return isNaN(n)?null:n;}
+function fmt(n){return(n==null||!isFinite(n))?'':String(Math.round(n*100)/100).replace('.',',');}
+function p2(n){return n<10?'0'+n:''+n;}
+function vandaag(){var d=new Date();return d.getFullYear()+'-'+p2(d.getMonth()+1)+'-'+p2(d.getDate());}
+function nlDatum(iso){var a=String(iso).split('-');return a.length===3?a[2]+'/'+a[1]+'/'+a[0]:iso;}
+function vandaagIdx(){return(new Date().getDay()+6)%7;}
+function weekNr(){return Math.floor(Date.now()/(7*864e5));}
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;var t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+function alle(){return BASIS.concat(S.eigen);}
+function exById(id){var l=alle();for(var i=0;i<l.length;i++)if(l[i].id===id)return l[i];return null;}
+function toegestaan(e){
+ var p=S.profiel;
+ if(S.uit.indexOf(e.id)>=0)return false;
+ for(var i=0;i<e.uit.length;i++)if(p.blessures.indexOf(e.uit[i])>=0)return false;
+ for(var j=0;j<e.mat.length;j++)if(!p.materiaal[e.mat[j]])return false;
+ return true;
+}
+function ster(e){return e.nieuw?' <b title="nieuwe oefening">*</b>':'';}
+
+/* halters */
+function parseSchijven(s){
+ var res=[];
+ String(s||'').split(/[;\n]+/).forEach(function(t){
+  t=t.trim().replace(/,/g,'.');if(!t)return;
+  var m=t.match(/^(\d+)\s*[x\u00d7]\s*(\d+(?:\.\d+)?)$/i);
+  if(m)res.push({aantal:+m[1],kg:+m[2]});
+  else if(!isNaN(parseFloat(t)))res.push({aantal:1,kg:parseFloat(t)});
+ });
+ return res;
+}
+function halterGewichten(){
+ var h=S.profiel.halter,n=Math.max(1,parseInt(h.aantal,10)||1),sums=[0];
+ parseSchijven(h.schijven).forEach(function(x){
+  var c=Math.floor(x.aantal/n);
+  for(var i=0;i<c;i++){
+   var nieuw=sums.slice();
+   sums.forEach(function(s){nieuw.push(Math.round((s+x.kg)*100)/100);});
+   sums=nieuw.filter(function(v,ix,a){return a.indexOf(v)===ix;});
+  }
+ });
+ var baar=num(h.baar)||0;
+ return sums.map(function(s){return Math.round((s+baar)*100)/100;}).sort(function(a,b){return a-b;});
+}
+
+/* schema */
+function kiesDagen(jp,n){
+ var gekozen=[],bezet=jp.slice();
+ for(var i=0;i<n;i++){
+  var beste=-1,s1=-1,s2=99;
+  for(var d=0;d<7;d++){
+   if(bezet.indexOf(d)>=0)continue;
+   var afst=7;bezet.forEach(function(b){afst=Math.min(afst,Math.abs(b-d),7-Math.abs(b-d));});
+   var buren=(bezet.indexOf((d+6)%7)>=0?1:0)+(bezet.indexOf((d+1)%7)>=0?1:0);
+   if(afst>s1||(afst===s1&&buren<s2)){beste=d;s1=afst;s2=buren;}
+  }
+  if(beste<0)break;
+  gekozen.push(beste);bezet.push(beste);
+ }
+ return gekozen.sort(function(a,b){return a-b;});
+}
+function pickRnd(arr,rng){return arr[Math.floor(rng()*arr.length)];}
+function kiesStretch(rng,groepen){
+ var pool=alle().filter(function(e){return e.type==='stretch'&&toegestaan(e);}),res=[];
+ groepen.forEach(function(g){
+  var o=pool.filter(function(e){return e.groep===g&&res.indexOf(e)<0;});
+  if(o.length)res.push(pickRnd(o,rng));
+ });
+ return res.slice(0,6);
+}
+function warmup(){
+ var m=S.profiel.materiaal;
+ if(m.fiets)return '5 min rustig fietsen';
+ if(m.loopband)return '5 min rustig wandelen op de loopband';
+ return '5 min stappen ter plaatse met armbewegingen';
+}
+function maakKracht(rng,gebruikt){
+ var p=S.profiel,n=parseInt(p.aantalOef,10)||6;
+ var pool=alle().filter(function(e){return e.type==='kracht'&&toegestaan(e);});
+ var per={};pool.forEach(function(e){(per[e.groep]=per[e.groep]||[]).push(e);});
+ var groepen=Object.keys(per),kies=[],vorige=null;
+ function vrij(g){return per[g].filter(function(e){return kies.indexOf(e)<0;});}
+ function tel(g){return kies.filter(function(e){return e.groep===g;}).length;}
+ for(var i=0;i<n;i++){
+  var kand=groepen.filter(function(g){return vrij(g).length>0;});
+  if(!kand.length)break;
+  var a=kand.filter(function(g){return g!==vorige&&(!vorige||ZONE[g]!==ZONE[vorige]);});
+  if(!a.length)a=kand.filter(function(g){return g!==vorige;});
+  if(a.length)kand=a;
+  var min=Math.min.apply(null,kand.map(tel));
+  kand=kand.filter(function(g){return tel(g)===min;});
+  var g=pickRnd(kand,rng),opt=vrij(g);
+  var nieuw=opt.filter(function(e){return !gebruikt[e.id];});
+  if(nieuw.length)opt=nieuw;
+  var e=pickRnd(opt,rng);
+  kies.push(e);gebruikt[e.id]=1;vorige=g;
+ }
+ var herh=p.doelen.spieropbouw?'8-12':'12-15';
+ var oef=kies.map(function(e){return{ex:e,sets:3,herh:e.tijd?'30 s':herh};});
+ var grp=[];kies.forEach(function(e){if(grp.indexOf(e.groep)<0)grp.push(e.groep);});
+ return{type:'kracht',warmup:warmup(),oef:oef,stretch:kiesStretch(rng,grp)};
+}
+function maakCardio(rng,gebruikt){
+ var pool=alle().filter(function(e){return e.type==='cardio'&&toegestaan(e);});
+ var nieuw=pool.filter(function(e){return !gebruikt[e.id];});
+ if(nieuw.length)pool=nieuw;
+ var e=pickRnd(pool,rng);gebruikt[e.id]=1;
+ return{type:'cardio',ex:e,minuten:S.profiel.cardioMin||30,stretch:kiesStretch(rng,['benen','kuiten','bil'])};
+}
+function plan(){
+ var p=S.profiel,rng=mulberry32(S.seed*1000+weekNr()),jp=p.jpDagen.slice();
+ var thuis=(p.thuisDagen&&p.thuisDagen.length)?p.thuisDagen.filter(function(d){return jp.indexOf(d)<0;}).sort(function(a,b){return a-b;}):kiesDagen(jp,parseInt(p.thuisAantal,10)||0);
+ var eerstKracht=!!p.doelen.spieropbouw||thuis.length>1;
+ var gk={},gc={},dagen=[];
+ for(var d=0;d<7;d++){
+  if(jp.indexOf(d)>=0)dagen.push({d:d,soort:'jp'});
+  else if(thuis.indexOf(d)>=0){
+   var i=thuis.indexOf(d),isKracht=((i%2===0)===eerstKracht);
+   dagen.push({d:d,soort:'thuis',training:isKracht?maakKracht(rng,gk):maakCardio(rng,gc)});
+  } else dagen.push({d:d,soort:'rust'});
+ }
+ return dagen;
+}
+function laatsteVoor(exId){
+ var ts=S.trainingen.slice().sort(function(a,b){return a.datum<b.datum?1:-1;});
+ for(var i=0;i<ts.length;i++){
+  var its=ts[i].items||[];
+  for(var j=0;j<its.length;j++)if(its[j].exId===exId&&its[j].sets&&its[j].sets.length){
+   var b=besteSet(its[j].sets);if(b)return b;
+  }
+ }
+ return null;
+}
+function besteSet(sets){
+ var b=null;
+ sets.forEach(function(s){
+  if(s.kg==null&&s.reps==null)return;
+  if(!b||(s.kg||0)>(b.kg||0)||((s.kg||0)===(b.kg||0)&&(s.reps||0)>(b.reps||0)))b=s;
+ });
+ return b;
+}
+function setTekst(s,tijd){return(s.kg!=null?fmt(s.kg)+' kg x ':'')+(s.reps!=null?fmt(s.reps)+(tijd?' s':''):'');}
+
+/* grafiek */
+function chart(punten,eenheid){
+ if(!punten.length)return '<p class="muted">Nog geen gegevens.</p>';
+ var W=320,H=170,pl=40,pr=12,pt=12,pb=24;
+ var xs=punten.map(function(p){return new Date(p.x+'T12:00:00').getTime();}),ys=punten.map(function(p){return p.y;});
+ var x0=Math.min.apply(null,xs),x1=Math.max.apply(null,xs),y0=Math.min.apply(null,ys),y1=Math.max.apply(null,ys);
+ if(x0===x1){x0-=864e5;x1+=864e5;}
+ if(y0===y1){y0-=1;y1+=1;}
+ var pad=(y1-y0)*0.12;y0-=pad;y1+=pad;
+ function X(t){return pl+(t-x0)/(x1-x0)*(W-pl-pr);}
+ function Y(v){return pt+(1-(v-y0)/(y1-y0))*(H-pt-pb);}
+ var pad_=punten.map(function(p,i){return(i?'L':'M')+X(xs[i]).toFixed(1)+' '+Y(p.y).toFixed(1);}).join(' ');
+ var dots=punten.map(function(p,i){return '<circle cx="'+X(xs[i]).toFixed(1)+'" cy="'+Y(p.y).toFixed(1)+'" r="3.5" fill="var(--accent)"/>';}).join('');
+ var ticks=[y0+pad,(y0+y1)/2,y1-pad].map(function(v){return '<line x1="'+pl+'" x2="'+(W-pr)+'" y1="'+Y(v).toFixed(1)+'" y2="'+Y(v).toFixed(1)+'" stroke="var(--line)"/><text x="'+(pl-4)+'" y="'+(Y(v)+4).toFixed(1)+'" font-size="10" text-anchor="end" fill="var(--muted)">'+fmt(v)+'</text>';}).join('');
+ var xl='<text x="'+pl+'" y="'+(H-6)+'" font-size="10" fill="var(--muted)">'+esc(nlDatum(punten[0].x))+'</text><text x="'+(W-pr)+'" y="'+(H-6)+'" font-size="10" text-anchor="end" fill="var(--muted)">'+esc(nlDatum(punten[punten.length-1].x))+'</text>';
+ return '<svg class="chart" viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Grafiek '+esc(eenheid)+'">'+ticks+xl+'<path d="'+pad_+'" fill="none" stroke="var(--accent)" stroke-width="2"/>'+dots+'</svg><div class="muted">Eenheid: '+esc(eenheid)+'</div>';
+}
+
+/* views */
+var tab='schema',L=null,voortExId='',voortMetriek='kg',metMetriek='gewicht',oefFilter='alle';
+function dagKaart(x){
+ var nu=x.d===vandaagIdx(),h='<div class="card'+(nu?' nu':'')+'"><h3>'+DAGEN[x.d]+(nu?' <span class="badge">vandaag</span>':'')+'</h3>';
+ if(x.soort==='jp'){
+  h+='<p class="muted">Jan Palfijn. Thuis geen zware training.</p><button class="btn alt klein noprint" onclick="A.startJp()">Sessie loggen</button>';
+ }else if(x.soort==='rust'){
+  h+='<p class="muted">Rustdag</p>';
+ }else{
+  var t=x.training;
+  if(t.type==='kracht'){
+   h+='<p class="muted">Krachttraining. Opwarming: '+esc(t.warmup)+'.</p>';
+   if(!t.oef.length)h+='<p>Geen oefeningen beschikbaar met de huidige blessures en materiaal. Pas het profiel aan.</p>';
+   h+='<ol>'+t.oef.map(function(o){
+    var l=laatsteVoor(o.ex.id);
+    return '<li><b>'+esc(o.ex.naam)+'</b>'+ster(o.ex)+' <span>'+o.sets+' x '+esc(o.herh)+'</span>'+(l?' <span class="muted">vorige keer: '+esc(setTekst(l,o.ex.tijd))+'</span>':'')+'<div class="uitleg">'+esc(o.ex.uitleg)+'</div></li>';
+   }).join('')+'</ol>';
+  }else{
+   h+='<p><b>'+esc(t.ex.naam)+'</b>'+ster(t.ex)+' ('+t.minuten+' min)</p><div class="uitleg">'+esc(t.ex.uitleg)+'</div>';
+  }
+  if(t.stretch.length)h+='<p style="margin-bottom:0"><b>Stretch</b> <span class="muted">(30 s per oefening, per kant)</span></p><ul>'+t.stretch.map(function(s){return '<li>'+esc(s.naam)+'<div class="uitleg">'+esc(s.uitleg)+'</div></li>';}).join('')+'</ul>';
+  h+='<button class="btn klein noprint" onclick="A.start('+x.d+')">Training loggen</button>';
+ }
+ return h+'</div>';
+}
+function vSchema(){
+ var p=S.profiel,dagen=plan(),h='';
+ if(!opslagOk)h+='<div class="banner">Opslaan in de browser lukt niet (privémodus?). Gegevens gaan verloren bij sluiten.</div>';
+ if(S.trainingen.length&&(!S.laatsteExport||(Date.now()-new Date(S.laatsteExport).getTime())>30*864e5))h+='<div class="banner noprint">Maak eens een back-up: Profiel, Back-up exporteren.</div>';
+ h+='<h2>Weekschema</h2>';
+ h+='<p class="muted">Doelen: '+(['conditie','afvallen','spieropbouw'].filter(function(k){return p.doelen[k];}).join(', ')||'geen gekozen')+'. Blessures vermeden: '+(p.blessures.length?esc(p.blessures.join(', ')):'geen')+'.</p>';
+ h+='<div class="noprint"><button class="btn" onclick="A.nieuw()">Nieuw schema</button><button class="btn alt" onclick="window.print()">Afdrukken</button></div>';
+ if(!p.materiaal.halters&&!p.materiaal.loopband&&!p.materiaal.fiets)h+='<div class="banner">Geen materiaal gekozen in het profiel, dus enkel lichaamsgewicht-oefeningen.</div>';
+ return h+dagen.map(dagKaart).join('');
+}
+
+function nieuwLog(soort,dag,train){
+ var l={datum:vandaag(),soort:soort,items:[],minuten:'',afstand:'',notitie:'',label:dag==null?'':DAGEN[dag]};
+ if(train&&train.type==='kracht'){
+  l.items=train.oef.map(function(o){
+   var la=laatsteVoor(o.ex.id),sets=[];
+   for(var i=0;i<o.sets;i++)sets.push({reps:'',kg:''});
+   return{exId:o.ex.id,naam:o.ex.naam,tijd:!!o.ex.tijd,doel:o.sets+' x '+o.herh,laatste:la?setTekst(la,o.ex.tijd):'',sets:sets};
+  });
+ }else if(train&&train.type==='cardio'){
+  l.items=[{exId:train.ex.id,naam:train.ex.naam,sets:[]}];l.minuten=String(train.minuten);
+ }
+ return l;
+}
+function vTraining(){
+ var dagen=plan();
+ if(!L){
+  var h='<h2>Training loggen</h2><div class="card"><h3>Start een training</h3>';
+  dagen.filter(function(x){return x.soort==='thuis';}).forEach(function(x){
+   h+='<button class="btn" onclick="A.start('+x.d+')">'+DAGEN[x.d]+': '+(x.training.type==='kracht'?'kracht':'cardio')+'</button>';
+  });
+  h+='<div><button class="btn alt" onclick="A.vrij(\'kracht\')">Vrije krachttraining</button><button class="btn alt" onclick="A.vrij(\'cardio\')">Vrije cardio</button><button class="btn alt" onclick="A.startJp()">Jan Palfijn sessie</button></div></div>';
+  var laatste=S.trainingen.slice().sort(function(a,b){return a.datum<b.datum?1:-1;}).slice(0,5);
+  if(laatste.length)h+='<h2>Laatste trainingen</h2>'+laatste.map(trainingKaart).join('');
+  return h;
+ }
+ var gew=halterGewichten();
+ var h2='<h2>'+(L.soort==='jp'?'Jan Palfijn sessie':L.soort==='cardio'?'Cardio':'Krachttraining')+(L.label?' ('+esc(L.label)+')':'')+'</h2>';
+ h2+='<datalist id="kgs">'+gew.map(function(g){return '<option value="'+fmt(g)+'">';}).join('')+'</datalist>';
+ h2+='<div class="card"><label>Datum</label><input type="date" value="'+esc(L.datum)+'" onchange="A.lg(\'datum\',this.value)"></div>';
+ if(L.soort==='kracht'){
+  h2+=L.items.map(function(it,i){
+   return '<div class="card"><h3>'+esc(it.naam)+'</h3><div class="muted">'+esc(it.doel||'')+(it.laatste?' | vorige keer: '+esc(it.laatste):'')+'</div>'+it.sets.map(function(s,j){
+    return '<div class="rij"><span>Set '+(j+1)+'</span><input type="text" inputmode="decimal" placeholder="'+(it.tijd?'sec':'herh.')+'" value="'+esc(s.reps)+'" onchange="A.st('+i+','+j+',\'reps\',this.value)">'+(it.tijd?'':'<input type="text" inputmode="decimal" list="kgs" placeholder="kg" value="'+esc(s.kg)+'" onchange="A.st('+i+','+j+',\'kg\',this.value)">')+'</div>';
+   }).join('')+'<button class="btn alt klein" onclick="A.addSet('+i+')">+ set</button><button class="btn rood klein" onclick="A.delOef('+i+')">Verwijder</button></div>';
+  }).join('');
+  var opts=alle().filter(function(e){return e.type==='kracht';}).map(function(e){return '<option value="'+esc(e.id)+'">'+esc(e.naam)+'</option>';}).join('');
+  h2+='<div class="card"><label>Oefening toevoegen</label><div class="rij"><select id="addOef">'+opts+'</select><button class="btn klein" onclick="A.addOef()">Toevoegen</button></div></div>';
+ }else if(L.soort==='cardio'){
+  var copts=alle().filter(function(e){return e.type==='cardio';}).map(function(e){return '<option value="'+esc(e.id)+'"'+(L.items[0]&&L.items[0].exId===e.id?' selected':'')+'>'+esc(e.naam)+'</option>';}).join('');
+  h2+='<div class="card"><label>Soort cardio</label><select onchange="A.cardioKies(this.value)">'+copts+'</select><div class="grid2"><div><label>Minuten</label><input type="text" inputmode="decimal" value="'+esc(L.minuten)+'" onchange="A.lg(\'minuten\',this.value)"></div><div><label>Afstand (km, optioneel)</label><input type="text" inputmode="decimal" value="'+esc(L.afstand)+'" onchange="A.lg(\'afstand\',this.value)"></div></div></div>';
+ }
+ h2+='<div class="card"><label>Notities</label><textarea rows="3" onchange="A.lg(\'notitie\',this.value)">'+esc(L.notitie)+'</textarea></div>';
+ h2+='<button class="btn" onclick="A.bewaarTraining()">Training opslaan</button><button class="btn alt" onclick="A.annuleer()">Annuleren</button>';
+ return h2;
+}
+function trainingKaart(t){
+ var soort=t.soort==='jp'?'Jan Palfijn':t.soort==='cardio'?'Cardio':'Kracht';
+ var h='<div class="card"><h3>'+esc(nlDatum(t.datum))+' | '+soort+'</h3>';
+ if(t.soort==='cardio')h+='<div>'+esc((t.items[0]&&t.items[0].naam)||'')+': '+fmt(t.minuten)+' min'+(t.afstand!=null?', '+fmt(t.afstand)+' km':'')+'</div>';
+ else if(t.items&&t.items.length)h+='<table>'+t.items.map(function(it){return '<tr><td>'+esc(it.naam)+'</td><td>'+it.sets.map(function(s){return esc(setTekst(s,it.tijd));}).join('<br>')+'</td></tr>';}).join('')+'</table>';
+ if(t.notitie)h+='<div class="muted">'+esc(t.notitie)+'</div>';
+ return h+'<button class="btn rood klein" onclick="A.delTraining('+t.id+')">Verwijder</button></div>';
+}
+function reeks(exId,metriek){
+ var pts=[],lijst=[];
+ S.trainingen.slice().sort(function(a,b){return a.datum<b.datum?-1:1;}).forEach(function(t){
+  (t.items||[]).forEach(function(it){
+   if(it.exId!==exId)return;
+   var y=null,tekst='';
+   if(t.soort==='cardio'){
+    y=metriek==='afstand'?t.afstand:t.minuten;tekst=fmt(t.minuten)+' min'+(t.afstand!=null?', '+fmt(t.afstand)+' km':'');
+   }else{
+    var sets=it.sets||[];
+    if(metriek==='kg'){var b=besteSet(sets.filter(function(s){return s.kg!=null;}));y=b?b.kg:null;}
+    else if(metriek==='volume'){var v=0,ok=false;sets.forEach(function(s){if(s.kg!=null&&s.reps!=null){v+=s.kg*s.reps;ok=true;}});y=ok?v:null;}
+    else{var r=0,ok2=false;sets.forEach(function(s){if(s.reps!=null){r+=s.reps;ok2=true;}});y=ok2?r:null;}
+    tekst=sets.map(function(s){return setTekst(s,it.tijd);}).join(' | ');
+   }
+   lijst.push({x:t.datum,y:y,tekst:tekst});
+   if(y!=null)pts.push({x:t.datum,y:y});
+  });
+ });
+ return{pts:pts,lijst:lijst};
+}
+function vVoortgang(){
+ var namen={},isCardio={};
+ S.trainingen.forEach(function(t){(t.items||[]).forEach(function(it){namen[it.exId]=it.naam;if(t.soort==='cardio')isCardio[it.exId]=1;});});
+ var ids=Object.keys(namen);
+ var h='<h2>Voortgang</h2>';
+ if(!ids.length)return h+'<div class="card">Nog geen trainingen opgeslagen. Log een training en je ziet hier je vooruitgang per oefening.</div>'+(S.trainingen.length?S.trainingen.map(trainingKaart).join(''):'');
+ if(!namen[voortExId])voortExId=ids[0];
+ var cardio=!!isCardio[voortExId];
+ var mets=cardio?[['minuten','Minuten'],['afstand','Afstand (km)']]:[['kg','Zwaarste gewicht (kg)'],['volume','Volume (kg x herh.)'],['reps','Totaal herhalingen of seconden']];
+ if(!mets.some(function(m){return m[0]===voortMetriek;}))voortMetriek=mets[0][0];
+ h+='<div class="card"><label>Oefening</label><select onchange="A.vEx(this.value)">'+ids.map(function(id){return '<option value="'+esc(id)+'"'+(id===voortExId?' selected':'')+'>'+esc(namen[id])+'</option>';}).join('')+'</select><label>Meting</label><select onchange="A.vMet(this.value)">'+mets.map(function(m){return '<option value="'+m[0]+'"'+(m[0]===voortMetriek?' selected':'')+'>'+m[1]+'</option>';}).join('')+'</select>';
+ var r=reeks(voortExId,voortMetriek);
+ h+=chart(r.pts,(mets.filter(function(m){return m[0]===voortMetriek;})[0]||[])[1]||'');
+ var vorig=null;
+ h+='<table><tr><th>Datum</th><th>Sets</th><th>Waarde</th><th>Verschil</th></tr>'+r.lijst.map(function(x){
+  var d='';if(x.y!=null&&vorig!=null){var df=x.y-vorig;d='<span class="'+(df>0?'up':df<0?'down':'')+'">'+(df>0?'+':'')+fmt(df)+'</span>';}
+  if(x.y!=null)vorig=x.y;
+  return '<tr><td>'+esc(nlDatum(x.x))+'</td><td>'+esc(x.tekst)+'</td><td>'+fmt(x.y)+'</td><td>'+d+'</td></tr>';
+ }).join('')+'</table></div>';
+ h+='<h2>Alle trainingen</h2>'+S.trainingen.slice().sort(function(a,b){return a.datum<b.datum?1:-1;}).map(trainingKaart).join('');
+ return h;
+}
+
+function bmi(m){var l=num(S.profiel.lengte);if(!l||!m||!m.gewicht)return null;var meter=l>3?l/100:l;return m.gewicht/(meter*meter);}
+function vMetingen(){
+ var p=S.profiel,h='<h2>Metingen</h2>';
+ if(!num(p.lengte))h+='<div class="banner">Vul eerst de lengte in bij Profiel voor de BMI.</div>';
+ h+='<div class="card"><h3>Nieuwe meting</h3><label>Datum</label><input type="date" id="mDatum" value="'+vandaag()+'"><div class="grid2"><div><label>Gewicht (kg)</label><input type="text" inputmode="decimal" id="mGew"></div><div><label>Taille (cm)</label><input type="text" inputmode="decimal" id="mTaille"></div></div><label>Vetpercentage (%, optioneel)</label><input type="text" inputmode="decimal" id="mVet"><button class="btn" onclick="A.meting()">Opslaan</button></div>';
+ var ms=S.metingen.slice().sort(function(a,b){return a.datum<b.datum?-1:1;});
+ if(!ms.length)return h;
+ var mets=[['gewicht','Gewicht (kg)'],['bmi','BMI'],['taille','Taille (cm)'],['vet','Vetpercentage (%)']];
+ function waarde(m,k){return k==='bmi'?bmi(m):m[k];}
+ var pts=ms.filter(function(m){var v=waarde(m,metMetriek);return v!=null&&isFinite(v);}).map(function(m){return{x:m.datum,y:waarde(m,metMetriek)};});
+ h+='<div class="card"><label>Grafiek</label><select onchange="A.mMet(this.value)">'+mets.map(function(m){return '<option value="'+m[0]+'"'+(m[0]===metMetriek?' selected':'')+'>'+m[1]+'</option>';}).join('')+'</select>'+chart(pts,(mets.filter(function(m){return m[0]===metMetriek;})[0]||[])[1]||'');
+ if(pts.length>1){var df=pts[pts.length-1].y-pts[0].y;h+='<p class="muted">Sinds de eerste meting: '+(df>0?'+':'')+fmt(df)+'</p>';}
+ h+='<p class="muted">BMI maakt geen onderscheid tussen vet en spieren. Volg daarom ook taille en vetpercentage.</p></div>';
+ h+='<div class="card"><table><tr><th>Datum</th><th>kg</th><th>Taille</th><th>Vet %</th><th>BMI</th><th></th></tr>'+ms.slice().reverse().map(function(m){return '<tr><td>'+esc(nlDatum(m.datum))+'</td><td>'+fmt(m.gewicht)+'</td><td>'+fmt(m.taille)+'</td><td>'+fmt(m.vet)+'</td><td>'+fmt(bmi(m))+'</td><td><button class="btn rood klein" onclick="A.delMeting('+m.id+')">x</button></td></tr>';}).join('')+'</table></div>';
+ return h;
+}
+
+function vOefeningen(){
+ var h='<h2>Oefeningen</h2><div class="noprint">'+[['alle','Alle'],['kracht','Kracht'],['cardio','Cardio'],['stretch','Stretch']].map(function(f){return '<button class="btn '+(oefFilter===f[0]?'':'alt')+' klein" onclick="A.filter(\''+f[0]+'\')">'+f[1]+'</button>';}).join('')+'</div>';
+ var lijst=alle().filter(function(e){return oefFilter==='alle'||e.type===oefFilter;});
+ h+=lijst.map(function(e){
+  var aan=S.uit.indexOf(e.id)<0;
+  return '<div class="card"><label class="chk"><input type="checkbox" '+(aan?'checked':'')+' onchange="A.gebruik(\''+esc(e.id)+'\',this.checked)"><b>'+esc(e.naam)+'</b>'+ster(e)+'</label><div class="muted">'+esc(e.type)+' | '+esc(e.groep)+(e.mat.length?' | '+esc(e.mat.join(', ')):'')+(e.uit.length?' | niet bij: '+esc(e.uit.join(', ')):'')+'</div><div class="uitleg">'+esc(e.uitleg)+'</div>'+(e.nieuw?'<button class="btn rood klein" onclick="A.delEigen(\''+esc(e.id)+'\')">Verwijder</button>':'')+'</div>';
+ }).join('');
+ h+='<div class="card"><h3>Nieuwe oefening toevoegen *</h3><label>Naam</label><input type="text" id="oNaam"><div class="grid2"><div><label>Type</label><select id="oType"><option value="kracht">kracht</option><option value="cardio">cardio</option><option value="stretch">stretch</option></select></div><div><label>Spiergroep</label><select id="oGroep">'+GROEPEN.concat(['cardio']).map(function(g){return '<option>'+g+'</option>';}).join('')+'</select></div></div><label>Materiaal</label>'+MATERIAAL.map(function(m){return '<label class="chk"><input type="checkbox" name="oMat" value="'+m[0]+'">'+m[1]+'</label>';}).join('')+'<label>Niet doen bij</label>'+BLESSURES.map(function(b){return '<label class="chk"><input type="checkbox" name="oUit" value="'+b+'">'+b+'</label>';}).join('')+'<label>Korte uitleg</label><textarea id="oUitleg" rows="2"></textarea><button class="btn" onclick="A.voegToe()">Toevoegen</button></div>';
+ return h;
+}
+
+function chk(arrKey,val,checked,label){return '<label class="chk"><input type="checkbox" '+(checked?'checked':'')+' onchange="A.tg(\''+arrKey+'\','+(typeof val==='number'?val:'\''+val+'\'')+',this.checked)">'+label+'</label>';}
+function vProfiel(){
+ var p=S.profiel,h='<h2>Profiel</h2><div class="card"><label>Naam</label><input type="text" value="'+esc(p.naam)+'" onchange="A.pf(\'naam\',this.value)"><label>Lengte (cm)</label><input type="text" inputmode="decimal" value="'+esc(p.lengte)+'" onchange="A.pf(\'lengte\',this.value)">';
+ h+='<label>Doelen</label>'+[['conditie','Conditie'],['afvallen','Afvallen'],['spieropbouw','Spieropbouw']].map(function(d){return '<label class="chk"><input type="checkbox" '+(p.doelen[d[0]]?'checked':'')+' onchange="A.doel(\''+d[0]+'\',this.checked)">'+d[1]+'</label>';}).join('')+'</div>';
+ h+='<div class="card"><h3>Blessures en klachten</h3><p class="muted">Oefeningen die belasten worden niet gepland. Pas aan wanneer iets bijkomt of verdwijnt.</p>'+BLESSURES.map(function(b){return chk('blessures',b,p.blessures.indexOf(b)>=0,b);}).join('')+'<label>Notitie</label><textarea rows="2" onchange="A.pf(\'blessureNotitie\',this.value)">'+esc(p.blessureNotitie)+'</textarea></div>';
+ h+='<div class="card"><h3>Weekindeling</h3><label>Dagen in Jan Palfijn</label>'+DAGEN.map(function(d,i){return chk('jpDagen',i,p.jpDagen.indexOf(i)>=0,KORT[i]);}).join('')+'<label>Aantal thuistrainingen per week</label><select onchange="A.pf(\'thuisAantal\',this.value)">'+[0,1,2,3,4,5].map(function(n){return '<option'+(n===parseInt(p.thuisAantal,10)?' selected':'')+'>'+n+'</option>';}).join('')+'</select><label>Vaste thuisdagen (leeg laten = automatisch)</label>'+DAGEN.map(function(d,i){return chk('thuisDagen',i,p.thuisDagen.indexOf(i)>=0,KORT[i]);}).join('')+'<div class="grid2"><div><label>Oefeningen per krachttraining</label><select onchange="A.pf(\'aantalOef\',this.value)">'+[4,5,6,7,8].map(function(n){return '<option'+(n===parseInt(p.aantalOef,10)?' selected':'')+'>'+n+'</option>';}).join('')+'</select></div><div><label>Duur cardio (min)</label><input type="text" inputmode="numeric" value="'+esc(p.cardioMin)+'" onchange="A.pf(\'cardioMin\',this.value)"></div></div></div>';
+ h+='<div class="card"><h3>Materiaal thuis</h3>'+MATERIAAL.map(function(m){return '<label class="chk"><input type="checkbox" '+(p.materiaal[m[0]]?'checked':'')+' onchange="A.mat(\''+m[0]+'\',this.checked)">'+m[1]+'</label>';}).join('');
+ h+='<label>Gewicht van de halterstang (kg)</label><input type="text" inputmode="decimal" value="'+esc(p.halter.baar)+'" onchange="A.hl(\'baar\',this.value)"><label>Aantal halters</label><select onchange="A.hl(\'aantal\',this.value)">'+[1,2].map(function(n){return '<option'+(n===parseInt(p.halter.aantal,10)?' selected':'')+'>'+n+'</option>';}).join('')+'</select><label>Schijven (aantal x kg, gescheiden door puntkomma)</label><textarea rows="2" placeholder="bv. 4x1,25; 4x2,5; 4x5" onchange="A.hl(\'schijven\',this.value)">'+esc(p.halter.schijven)+'</textarea>';
+ var g=halterGewichten();
+ h+='<p class="muted">Mogelijke gewichten per halter: '+(g.length>1?g.map(fmt).join(', ')+' kg':'vul de schijven in')+'.</p></div>';
+ h+='<div class="card"><h3>Back-up</h3><p class="muted">Gegevens staan in deze browser op dit toestel. Maak regelmatig een back-up.</p><button class="btn" onclick="A.exp()">Back-up exporteren</button><label class="btn alt" style="display:inline-block;cursor:pointer">Back-up importeren<input type="file" accept="application/json,.json" style="display:none" onchange="A.imp(this)"></label><button class="btn rood" onclick="A.reset()">Alles wissen</button></div>';
+ return h;
+}
+var VIEWS={schema:vSchema,training:vTraining,voortgang:vVoortgang,metingen:vMetingen,oefeningen:vOefeningen,profiel:vProfiel};
+
+function render(){
+ var v=document.getElementById('view'),n=document.getElementById('nav');
+ v.innerHTML=VIEWS[tab]();
+ n.innerHTML=TABS.map(function(t){return '<button class="'+(t[0]===tab?'on':'')+'" onclick="A.go(\''+t[0]+'\')">'+t[1]+'</button>';}).join('');
+ var hl=document.getElementById('hello');if(hl)hl.textContent=S.profiel.naam||'';
+}
+function go(t){tab=t;render();window.scrollTo(0,0);}
+
+var A={
+ go:go,
+ nieuw:function(){S.seed++;bewaar();render();},
+ start:function(d){var x=plan().filter(function(y){return y.d===d;})[0];if(!x||!x.training)return;L=nieuwLog(x.training.type,d,x.training);tab='training';render();window.scrollTo(0,0);},
+ startJp:function(){L=nieuwLog('jp',null,null);L.label='';tab='training';render();window.scrollTo(0,0);},
+ vrij:function(soort){L=nieuwLog(soort,null,null);if(soort==='cardio'){var c=alle().filter(function(e){return e.type==='cardio'&&toegestaan(e);})[0]||alle().filter(function(e){return e.type==='cardio';})[0];L.items=[{exId:c.id,naam:c.naam,sets:[]}];L.minuten=String(S.profiel.cardioMin||30);}render();},
+ lg:function(k,v){L[k]=v;},
+ st:function(i,j,k,v){L.items[i].sets[j][k]=v;},
+ addSet:function(i){L.items[i].sets.push({reps:'',kg:''});render();},
+ delOef:function(i){L.items.splice(i,1);render();},
+ addOef:function(){var id=document.getElementById('addOef').value,e=exById(id);if(!e)return;var la=laatsteVoor(id);L.items.push({exId:id,naam:e.naam,tijd:!!e.tijd,doel:'',laatste:la?setTekst(la,e.tijd):'',sets:[{reps:'',kg:''},{reps:'',kg:''},{reps:'',kg:''}]});render();},
+ cardioKies:function(id){var e=exById(id);L.items=[{exId:id,naam:e.naam,sets:[]}];},
+ annuleer:function(){L=null;render();},
+ bewaarTraining:function(){
+  var t={id:Date.now(),datum:L.datum||vandaag(),soort:L.soort,items:[],notitie:L.notitie||''};
+  if(L.soort==='kracht'){
+   L.items.forEach(function(it){
+    var sets=it.sets.map(function(s){return{reps:num(s.reps),kg:num(s.kg)};}).filter(function(s){return s.reps!=null||s.kg!=null;});
+    if(sets.length)t.items.push({exId:it.exId,naam:it.naam,tijd:!!it.tijd,sets:sets});
+   });
+   if(!t.items.length){alert('Vul minstens één set in.');return;}
+  }else if(L.soort==='cardio'){
+   t.items=L.items.map(function(it){return{exId:it.exId,naam:it.naam,sets:[]};});
+   t.minuten=num(L.minuten);t.afstand=num(L.afstand);
+   if(t.minuten==null){alert('Vul de duur in.');return;}
+  }
+  S.trainingen.push(t);bewaar();L=null;tab='voortgang';render();window.scrollTo(0,0);
+ },
+ delTraining:function(id){if(!confirm('Deze training verwijderen?'))return;S.trainingen=S.trainingen.filter(function(t){return t.id!==id;});bewaar();render();},
+ vEx:function(v){voortExId=v;render();},
+ vMet:function(v){voortMetriek=v;render();},
+ mMet:function(v){metMetriek=v;render();},
+ meting:function(){
+  var g=num(document.getElementById('mGew').value),t=num(document.getElementById('mTaille').value),v=num(document.getElementById('mVet').value),d=document.getElementById('mDatum').value||vandaag();
+  if(g==null&&t==null&&v==null){alert('Vul minstens één waarde in.');return;}
+  S.metingen.push({id:Date.now(),datum:d,gewicht:g,taille:t,vet:v});bewaar();render();
+ },
+ delMeting:function(id){if(!confirm('Deze meting verwijderen?'))return;S.metingen=S.metingen.filter(function(m){return m.id!==id;});bewaar();render();},
+ filter:function(f){oefFilter=f;render();},
+ gebruik:function(id,aan){var i=S.uit.indexOf(id);if(aan&&i>=0)S.uit.splice(i,1);if(!aan&&i<0)S.uit.push(id);bewaar();},
+ delEigen:function(id){if(!confirm('Deze oefening verwijderen?'))return;S.eigen=S.eigen.filter(function(e){return e.id!==id;});bewaar();render();},
+ voegToe:function(){
+  var naam=document.getElementById('oNaam').value.trim();
+  if(!naam){alert('Geef de oefening een naam.');return;}
+  function vals(n){return Array.prototype.map.call(document.querySelectorAll('input[name='+n+']:checked'),function(x){return x.value;});}
+  var type=document.getElementById('oType').value;
+  var e=E('eigen_'+Date.now(),naam,type,document.getElementById('oGroep').value,vals('oMat'),vals('oUit'),document.getElementById('oUitleg').value.trim(),{nieuw:true});
+  S.eigen.push(e);bewaar();render();
+ },
+ pf:function(k,v){S.profiel[k]=v;bewaar();},
+ doel:function(k,v){S.profiel.doelen[k]=v;bewaar();},
+ mat:function(k,v){S.profiel.materiaal[k]=v;bewaar();},
+ hl:function(k,v){S.profiel.halter[k]=v;bewaar();render();},
+ tg:function(key,val,on){
+  var a=S.profiel[key],i=a.indexOf(val);
+  if(on&&i<0)a.push(val);if(!on&&i>=0)a.splice(i,1);
+  bewaar();
+ },
+ exp:function(){
+  S.laatsteExport=vandaag();bewaar();
+  var b=new Blob([JSON.stringify(S,null,1)],{type:'application/json'}),a=document.createElement('a');
+  a.href=URL.createObjectURL(b);a.download='fysio-fit-backup-'+vandaag()+'.json';document.body.appendChild(a);a.click();a.remove();
+ },
+ imp:function(inp){
+  var f=inp.files&&inp.files[0];if(!f)return;
+  var r=new FileReader();
+  r.onload=function(){
+   try{
+    var d=JSON.parse(r.result);if(!d||typeof d!=='object'||!d.profiel)throw new Error('ongeldig');
+    if(!confirm('De huidige gegevens vervangen door deze back-up?'))return;
+    localStorage.setItem(KEY,JSON.stringify(d));S=laad();opslagOk=true;bewaar();render();
+   }catch(e){alert('Dit bestand is geen geldige back-up.');}
+  };
+  r.readAsText(f);
+ },
+ reset:function(){if(confirm('Alle gegevens wissen? Dit kan niet ongedaan gemaakt worden.')&&confirm('Zeker? Maak eerst een back-up als je die nog wil.')){S=standaard();try{localStorage.removeItem(KEY);}catch(e){}L=null;render();}}
+};
+window.A=A;
+render();
+})();
+</script>
+</body>
+</html>
