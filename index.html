@@ -18,7 +18,10 @@ header{background:var(--accent);color:var(--accent-fg);padding:14px 16px;display
 header h1{margin:0;font-size:1.25rem}
 main{max-width:760px;margin:0 auto;padding:12px}
 nav{position:fixed;bottom:0;left:0;right:0;background:var(--card);border-top:1px solid var(--line);display:flex;padding-bottom:env(safe-area-inset-bottom);z-index:5}
-nav button{flex:1;border:0;background:none;color:var(--muted);padding:12px 2px;font-size:.78rem;cursor:pointer}
+nav button{flex:1;border:0;background:none;color:var(--muted);padding:12px 2px;font-size:.72rem;cursor:pointer}
+details{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin:8px 0}
+summary{cursor:pointer;font-weight:600}
+details p{margin:8px 0}
 nav button.on{color:var(--accent);font-weight:700;border-top:3px solid var(--accent);padding-top:9px}
 h2{font-size:1.15rem;margin:16px 0 8px}
 h3{font-size:1.02rem;margin:0 0 6px}
@@ -65,7 +68,7 @@ var BLESSURES=['schouder','elleboog','pols','nek','onderrug','heup','knie','enke
 var GROEPEN=['benen','bil','kuiten','borst','rug','schouders','biceps','triceps','core'];
 var ZONE={benen:'onder',bil:'onder',kuiten:'onder',borst:'boven',rug:'boven',schouders:'boven',biceps:'boven',triceps:'boven',core:'core'};
 var MATERIAAL=[['loopband','Loopband'],['fiets','Koersfiets op rollen'],['halters','Halters met schijven'],['trap','Trap']];
-var TABS=[['schema','Schema'],['training','Training'],['voortgang','Voortgang'],['metingen','Metingen'],['oefeningen','Oefeningen'],['profiel','Profiel']];
+var TABS=[['schema','Schema'],['training','Training'],['voortgang','Voortgang'],['metingen','Metingen'],['oefeningen','Oefeningen'],['profiel','Profiel'],['hulp','Hulp']];
 
 function E(id,naam,type,groep,mat,uit,uitleg,extra){var o={id:id,naam:naam,type:type,groep:groep,mat:mat,uit:uit,uitleg:uitleg};if(extra)for(var k in extra)o[k]=extra[k];return o;}
 var BASIS=[
@@ -326,6 +329,7 @@ function vSchema(){
  var p=S.profiel,dagen=plan(),h='';
  if(!opslagOk)h+='<div class="banner">Opslaan in de browser lukt niet (privémodus?). Gegevens gaan verloren bij sluiten.</div>';
  if(S.trainingen.length&&(!S.laatsteExport||(Date.now()-new Date(S.laatsteExport).getTime())>30*864e5))h+='<div class="banner noprint">Maak eens een back-up: Profiel, Back-up exporteren.</div>';
+ if(!S.trainingen.length&&!S.metingen.length)h+='<div class="banner noprint">Nieuw hier? Lees eerst het tabblad Hulp en vul daarna je Profiel in.</div>';
  h+='<h2>Weekschema</h2>';
  h+='<p class="muted">Doelen: '+(['conditie','afvallen','spieropbouw'].filter(function(k){return p.doelen[k];}).join(', ')||'geen gekozen')+'. Blessures vermeden: '+(p.blessures.length?esc(p.blessures.join(', ')):'geen')+'.</p>';
  h+='<div class="noprint"><button class="btn" onclick="A.nieuw()">Nieuw schema</button><button class="btn alt" onclick="window.print()">Afdrukken</button></div>';
@@ -471,7 +475,41 @@ function vProfiel(){
  h+='<div class="card"><h3>Back-up</h3><p class="muted">Gegevens staan in deze browser op dit toestel. Maak regelmatig een back-up.</p><button class="btn" onclick="A.exp()">Back-up exporteren</button><label class="btn alt" style="display:inline-block;cursor:pointer">Back-up importeren<input type="file" accept="application/json,.json" style="display:none" onchange="A.imp(this)"></label><button class="btn rood" onclick="A.reset()">Alles wissen</button></div>';
  return h;
 }
-var VIEWS={schema:vSchema,training:vTraining,voortgang:vVoortgang,metingen:vMetingen,oefeningen:vOefeningen,profiel:vProfiel};
+function vHulp(){
+ return '<h2>Handleiding</h2>'+
+ '<details open><summary>Beginnen in 5 stappen</summary>'+
+ '<p><b>1. Profiel invullen.</b> Vul je lengte in, kies je doelen, vink eventuele blessures aan en duid het materiaal aan dat je thuis hebt. Bij halters vul je het gewicht van de stang en de schijven in.</p>'+
+ '<p><b>2. Schema bekijken.</b> Onder Schema zie je je week: dagen in Jan Palfijn, thuistrainingen en rustdagen.</p>'+
+ '<p><b>3. Trainen en noteren.</b> Druk bij een trainingsdag op Training loggen en vul na elke set je herhalingen en gewicht in. Sla op als je klaar bent.</p>'+
+ '<p><b>4. Meten.</b> Noteer onder Metingen af en toe je gewicht en taille (en eventueel vetpercentage). De BMI rekent de app zelf uit.</p>'+
+ '<p><b>5. Back-up maken.</b> Je gegevens staan alleen in de browser op dit toestel. Maak onder Profiel regelmatig een back-up.</p></details>'+
+ '<details><summary>Schema</summary>'+
+ '<p>Toont je week. Op krachtdagen krijg je een opwarming, oefeningen met sets en herhalingen en stretchoefeningen op het einde. De oefeningen wisselen af tussen spiergroepen, zodat dezelfde spier niet meerdere keren na elkaar aan bod komt. Bij een cardiodag krijg je een cardio-oefening met een duur.</p>'+
+ '<p>Naast een oefening staat na de eerste training "vorige keer", met wat je toen deed. Gebruik dat als richtlijn voor deze keer.</p>'+
+ '<p>De knop Nieuw schema maakt een andere keuze van oefeningen. Ook wijzigt het schema vanzelf elke week. Met Afdrukken krijg je een papieren versie.</p>'+
+ '<p>Verander je een blessure, het materiaal of de dagen in je profiel, dan past het schema zich daaraan aan.</p></details>'+
+ '<details><summary>Training</summary>'+
+ '<p>Kies een geplande dag, een vrije krachttraining, vrije cardio of een Jan Palfijn-sessie. Bij kracht vul je per set de herhalingen en het gewicht in. Bij een oefening zoals de plank vul je seconden in. Met + set voeg je een set toe en met Oefening toevoegen onderaan een extra oefening.</p>'+
+ '<p>De gewichten voor je halters staan als suggestie klaar, op basis van de schijven in je profiel. Je mag ook zelf een getal typen.</p>'+
+ '<p>Bij cardio noteer je de minuten en eventueel de afstand. Druk onderaan op Training opslaan om het te bewaren.</p></details>'+
+ '<details><summary>Voortgang</summary>'+
+ '<p>Kies een oefening en wat je wil volgen: het zwaarste gewicht, het totale volume (gewicht x herhalingen) of de herhalingen. Je ziet een grafiek en een tabel met het verschil ten opzichte van de vorige keer. Groen is vooruitgang. Onderaan staan al je trainingen, waar je een foute training kan verwijderen.</p></details>'+
+ '<details><summary>Metingen</summary>'+
+ '<p>Vul datum, gewicht, taille en eventueel vetpercentage in. Voor de BMI heb je je lengte in het profiel nodig. Meet het liefst op hetzelfde moment, bijvoorbeeld elke zaterdagochtend nuchter.</p>'+
+ '<p>De BMI maakt geen onderscheid tussen vet en spieren. Taille en vetpercentage geven daarom een beter beeld als je spieren opbouwt en vet verliest.</p></details>'+
+ '<details><summary>Oefeningen</summary>'+
+ '<p>De lijst met alle oefeningen en een korte uitleg. Met het vinkje zet je een oefening aan of uit: een oefening die uitstaat wordt nooit gepland. Onderaan voeg je zelf oefeningen toe. Die krijgen een * zodat je ziet dat ze nieuw zijn. Geef bij nieuwe oefeningen ook aan bij welke blessure ze niet geschikt zijn.</p></details>'+
+ '<details><summary>Profiel</summary>'+
+ '<p><b>Blessures:</b> vink aan wat pijn doet. Oefeningen die dat belasten worden niet meer gepland. Is een blessure genezen of komt er een bij, pas het dan hier aan.</p>'+
+ '<p><b>Weekindeling:</b> kies je dagen in Jan Palfijn en het aantal thuistrainingen. Laat je Vaste thuisdagen leeg, dan kiest de app zelf goed verspreide dagen.</p>'+
+ '<p><b>Halters:</b> vul het gewicht van de stang in, het aantal halters en je schijven, bijvoorbeeld 4x1,25; 4x2,5; 4x5. De app toont welke gewichten mogelijk zijn.</p>'+
+ '<p><b>Back-up:</b> exporteer een bestand en bewaar het op een veilige plek. Met importeren zet je het later terug, bijvoorbeeld op een nieuw toestel.</p></details>'+
+ '<details><summary>Handige tips</summary>'+
+ '<p>Zet de pagina op je beginscherm via het deelmenu van je browser, zodat hij aanvoelt als een echte app.</p>'+
+ '<p>Wis je de browsergegevens of gebruik je een ander toestel, dan zijn je gegevens daar niet aanwezig. Zonder back-up ben je ze kwijt.</p>'+
+ '<p>Dit zijn algemene trainingssuggesties en geen medisch advies. Bij klachten overleg je eerst met een arts of kinesitherapeut.</p></details>';
+}
+var VIEWS={schema:vSchema,training:vTraining,voortgang:vVoortgang,metingen:vMetingen,oefeningen:vOefeningen,profiel:vProfiel,hulp:vHulp};
 
 function render(){
  var v=document.getElementById('view'),n=document.getElementById('nav');
