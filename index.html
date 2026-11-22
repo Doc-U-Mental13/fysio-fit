@@ -19,7 +19,7 @@ header{background:var(--accent);color:var(--accent-fg);padding:14px 16px;display
 header h1{margin:0;font-size:1.25rem}
 header .door{font-size:.72rem;opacity:.85}
 .credit{margin-top:6px}
-main{max-width:760px;margin:0 auto;padding:12px}
+.vid{display:inline-block;margin:4px 0;font-size:.88rem;color:var(--accent);font-weight:600}main{max-width:760px;margin:0 auto;padding:12px}
 nav{position:fixed;bottom:0;left:0;right:0;background:var(--card);border-top:1px solid var(--line);display:flex;padding-bottom:env(safe-area-inset-bottom);z-index:5}
 nav button{flex:1;border:0;background:none;color:var(--muted);padding:12px 2px;font-size:.72rem;cursor:pointer}
 details{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin:8px 0}
@@ -53,18 +53,18 @@ th,td{text-align:left;padding:5px 4px;border-bottom:1px solid var(--line);vertic
 .chart{width:100%;height:auto;margin-top:6px}
 .up{color:#15803d}.down{color:#c2410c}
 footer{max-width:760px;margin:10px auto;padding:0 12px;color:var(--muted);font-size:.8rem}
-@media print{header,nav,.noprint{display:none!important}body{background:#fff;color:#000;padding:0}.card{break-inside:avoid;border:1px solid #999}}
+@media print{header,nav,.noprint,.vid{display:none!important}body{background:#fff;color:#000;padding:0}.card{break-inside:avoid;border:1px solid #999}}
 </style>
 </head>
 <body>
 <header><div><h1>Fysio-Fit</h1><div class="door">door Wim Vanhastel (Gentyl) met Claude</div></div><span id="hello"></span></header>
 <main id="view"></main>
-<footer><div class="noprint">Algemene trainingssuggesties, geen medisch advies. Bij klachten eerst overleggen met een arts of kinesitherapeut.</div><div class="credit">Fysio-Fit is gemaakt door Wim Vanhastel (Gentyl) met hulp van Claude, de AI-assistent van Anthropic.</div></footer>
-<nav id="nav"></nav>
-<script>
+<footer><div class="noprint">Algemene trainingssuggesties, geen medisch advies. Bij klachten eerst overleggen met een arts of kinesitherapeut.</div><div class="credit">Fysio-Fit is gemaakt door Wim Vanhastel (Gentyl) met hulp van Claude, de AI-assistent van Anthropic. Voorbeeldvideo's via MuscleWiki (musclewiki.com). <span id="versie"></span></div></footer>
+<nav id="nav"></nav><script>
 (function(){
 'use strict';
 var KEY='fysiofit-v1';
+var VERSIE='1.3';
 var DAGEN=['Maandag','Dinsdag','Woensdag','Donderdag','Vrijdag','Zaterdag','Zondag'];
 var KORT=['ma','di','wo','do','vr','za','zo'];
 var BLESSURES=['schouder','elleboog','pols','nek','onderrug','heup','knie','enkel'];
@@ -110,21 +110,34 @@ E('s_quad','Quadriceps stretch (staand)','stretch','benen',[],['knie'],'Trek de 
 E('s_ham','Hamstring stretch (zittend)','stretch','benen',[],[],'Zittend met één been gestrekt, leun voorover met rechte rug.'),
 E('s_kuit','Kuitstretch tegen de muur','stretch','kuiten',[],[],'Eén voet achter, hiel op de grond, leun naar de muur.'),
 E('s_heup','Heupbuiger stretch','stretch','bil',[],['knie'],'Halve knielende houding, schuif de heup naar voren.'),
-E('s_bil','Bilspier stretch (liggend)','stretch','bil',[],['heup','knie'],'Lig op je rug, enkel op de andere knie, trek het been naar je toe.'),
+E('s_bil','Bilspier stretch (liggend)','stretch','bil',[],['heup','knie'],'Lig op je rug met gebogen knieën. Leg één voet over de andere knie en trek het onderste been naar je toe.'),
 E('s_borst','Borststretch in een deuropening','stretch','borst',[],['schouder'],'Onderarm tegen de deurstijl en draai de borst voorzichtig weg.'),
 E('s_kat','Kat-kameel (bovenrug)','stretch','rug',[],['pols','knie'],'Op handen en knieën, wissel rond en hol de rug.'),
 E('s_kind','Kindhouding','stretch','rug',[],['knie'],'Zit op de hielen en strek de armen voor je uit op de grond.'),
 E('s_schouder','Schouderstretch (arm over de borst)','stretch','schouders',[],['schouder'],'Trek één arm met de andere hand voorzichtig over de borst.'),
-E('s_nek','Nekstretch zijwaarts','stretch','schouders',[],['nek'],'Oor richting de schouder, de andere schouder laten zakken.'),
-E('s_tri','Triceps stretch','stretch','triceps',[],['schouder'],'Hand achter het hoofd tussen de schouderbladen, duw de elleboog zachtjes naar achter.'),
+E('s_nek','Nekstretch zijwaarts','stretch','schouders',[],['nek'],'Zit of sta rechtop. Laat je oor naar je schouder zakken en laat de andere schouder laag. Trek met je hand van dezelfde kant heel zacht aan je hoofd voor wat extra spanning. Niet forceren.'),
+E('s_tri','Triceps stretch','stretch','triceps',[],['schouder'],'Strek één arm recht omhoog, buig je elleboog zodat je hand achter je hoofd tussen je schouderbladen komt en duw met je andere hand zachtjes op je elleboog tot je rek voelt aan de achterkant van je bovenarm.'),
 E('s_bi','Biceps stretch tegen de muur','stretch','biceps',[],['schouder','elleboog'],'Hand plat tegen de muur met gestrekte arm en draai het lichaam weg.'),
 E('s_knie','Onderrug: knieën naar de borst','stretch','core',[],[],'Lig op de rug en trek beide knieën zacht naar de borst.'),
 E('s_sfinx','Buikstretch (sfinx)','stretch','core',[],['onderrug'],'Lig op de buik en steun op de onderarmen met de borst omhoog.')
 ];
 
+var MW='https://musclewiki.com/exercise/',MWC='https://musclewiki.com/exercises/';
+var VIDEO={
+squat:MW+'bodyweight-squat',gobletsquat:MW+'dumbbell-goblet-squat',lunge:MW+'bodyweight-reverse-lunge',stepup:MW+'dumbbell-step-up',
+rdl:MW+'dumbbell-romanian-deadlift',bilbrug:MW+'glute-bridge',clamshell:MW+'clamshells-1-side-lying',kuit:MW+'calf-raises',
+floorpress:MW+'dumbbell-floor-press',opdrukwand:MW+'bodyweight-wall-pushup',roei:MW+'dumbbell-row-bilateral',roei1:MW+'dumbbell-single-arm-row',
+press:MW+'dumbbell-seated-overhead-press',zijwaarts:MW+'dumbbell-lateral-raise',shrug:MW+'dumbbell-shrug',
+curl:MW+'dumbbell-curl',hamer:MW+'dumbbell-hammer-curl',triover:MW+'dumbbell-overhead-tricep-extension',kick:MW+'dumbbell-tricep-kickback',
+plank:MW+'forearm-plank',deadbug:MW+'dead-bug',crunch:MW+'crunches',birddog:MW+'bird-dog',russian:MW+'bodyweight-russian-twist',
+s_quad:MW+'quads-stretch-variation-one',s_ham:MW+'hamstring-stretch-seated-single-leg-isometric',s_kuit:'https://youtu.be/HPLqmKH0GlA',s_heup:MW+'hip-flexor-stretch-kneeling-lunge-1',
+s_bil:'https://youtu.be/zhzW4-tq9HM',s_borst:MW+'chest-stretch-variation-one',s_kat:MW+'cat-pose',s_kind:MW+'child-pose-arms-extended',
+s_schouder:MW+'shoulders-stretch-variation-four',s_nek:MW+'traps-stretch-variation-one',s_tri:MW+'triceps-stretch-variation-one',s_bi:MW+'biceps-stretch-variation-one',
+s_knie:MW+'lower-back-stretch-variation-four',s_sfinx:MW+'sphinx-pose'
+};
 function standaard(){return{
  profiel:{naam:'Erwin',lengte:'',doelen:{conditie:true,afvallen:true,spieropbouw:true},jpDagen:[2,4],thuisAantal:3,thuisDagen:[],blessures:[],blessureNotitie:'',materiaal:{loopband:true,fiets:true,halters:true,trap:false},halter:{baar:1,aantal:2,schijven:''},aantalOef:6,cardioMin:30},
- seed:1,eigen:[],uit:[],metingen:[],trainingen:[],laatsteExport:''
+ seed:1,eigen:[],uit:[],videos:{},metingen:[],trainingen:[],laatsteExport:''
 };}
 var S=laad();
 function laad(){
@@ -161,6 +174,13 @@ function toegestaan(e){
  return true;
 }
 function ster(e){return e.nieuw?' <b title="nieuwe oefening">*</b>':'';}
+function safeUrl(u){u=String(u==null?'':u).trim();return /^https:\/\/[^\s"'<>]+$/i.test(u)?u:'';}
+function videoUrl(e){if(!e)return '';return safeUrl((S.videos&&S.videos[e.id])||e.video||VIDEO[e.id]||'');}
+function vidLink(e){
+ var u=videoUrl(e);if(!u)return '';
+ var lijst=u.indexOf('/exercises/')>=0;
+ return '<div><a class="vid" href="'+esc(u)+'" target="_blank" rel="noopener noreferrer">▶ '+(lijst?'Zoek video':'Bekijk video')+'</a></div>';
+}
 
 /* halters */
 function parseSchijven(s){
@@ -318,12 +338,12 @@ function dagKaart(x){
    if(!t.oef.length)h+='<p>Geen oefeningen beschikbaar met de huidige blessures en materiaal. Pas het profiel aan.</p>';
    h+='<ol>'+t.oef.map(function(o){
     var l=laatsteVoor(o.ex.id);
-    return '<li><b>'+esc(o.ex.naam)+'</b>'+ster(o.ex)+' <span>'+o.sets+' x '+esc(o.herh)+'</span>'+(l?' <span class="muted">vorige keer: '+esc(setTekst(l,o.ex.tijd))+'</span>':'')+'<div class="uitleg">'+esc(o.ex.uitleg)+'</div></li>';
+    return '<li><b>'+esc(o.ex.naam)+'</b>'+ster(o.ex)+' <span>'+o.sets+' x '+esc(o.herh)+'</span>'+(l?' <span class="muted">vorige keer: '+esc(setTekst(l,o.ex.tijd))+'</span>':'')+'<div class="uitleg">'+esc(o.ex.uitleg)+'</div>'+vidLink(o.ex)+'</li>';
    }).join('')+'</ol>';
   }else{
-   h+='<p><b>'+esc(t.ex.naam)+'</b>'+ster(t.ex)+' ('+t.minuten+' min)</p><div class="uitleg">'+esc(t.ex.uitleg)+'</div>';
+   h+='<p><b>'+esc(t.ex.naam)+'</b>'+ster(t.ex)+' ('+t.minuten+' min)</p><div class="uitleg">'+esc(t.ex.uitleg)+'</div>'+vidLink(t.ex);
   }
-  if(t.stretch.length)h+='<p style="margin-bottom:0"><b>Stretch</b> <span class="muted">(30 s per oefening, per kant)</span></p><ul>'+t.stretch.map(function(s){return '<li>'+esc(s.naam)+'<div class="uitleg">'+esc(s.uitleg)+'</div></li>';}).join('')+'</ul>';
+  if(t.stretch.length)h+='<p style="margin-bottom:0"><b>Stretch</b> <span class="muted">(30 s per oefening, per kant)</span></p><ul>'+t.stretch.map(function(s){return '<li>'+esc(s.naam)+'<div class="uitleg">'+esc(s.uitleg)+'</div>'+vidLink(s)+'</li>';}).join('')+'</ul>';
   h+='<button class="btn klein noprint" onclick="A.start('+x.d+')">Training loggen</button>';
  }
  return h+'</div>';
@@ -371,7 +391,7 @@ function vTraining(){
  h2+='<div class="card"><label>Datum</label><input type="date" value="'+esc(L.datum)+'" onchange="A.lg(\'datum\',this.value)"></div>';
  if(L.soort==='kracht'){
   h2+=L.items.map(function(it,i){
-   return '<div class="card"><h3>'+esc(it.naam)+'</h3><div class="muted">'+esc(it.doel||'')+(it.laatste?' | vorige keer: '+esc(it.laatste):'')+'</div>'+it.sets.map(function(s,j){
+   return '<div class="card"><h3>'+esc(it.naam)+'</h3>'+vidLink(exById(it.exId))+'<div class="muted">'+esc(it.doel||'')+(it.laatste?' | vorige keer: '+esc(it.laatste):'')+'</div>'+it.sets.map(function(s,j){
     return '<div class="rij"><span>Set '+(j+1)+'</span><input type="text" inputmode="decimal" placeholder="'+(it.tijd?'sec':'herh.')+'" value="'+esc(s.reps)+'" onchange="A.st('+i+','+j+',\'reps\',this.value)">'+(it.tijd?'':'<input type="text" inputmode="decimal" list="kgs" placeholder="kg" value="'+esc(s.kg)+'" onchange="A.st('+i+','+j+',\'kg\',this.value)">')+'</div>';
    }).join('')+'<button class="btn alt klein" onclick="A.addSet('+i+')">+ set</button><button class="btn rood klein" onclick="A.delOef('+i+')">Verwijder</button></div>';
   }).join('');
@@ -459,9 +479,9 @@ function vOefeningen(){
  var lijst=alle().filter(function(e){return oefFilter==='alle'||e.type===oefFilter;});
  h+=lijst.map(function(e){
   var aan=S.uit.indexOf(e.id)<0;
-  return '<div class="card"><label class="chk"><input type="checkbox" '+(aan?'checked':'')+' onchange="A.gebruik(\''+esc(e.id)+'\',this.checked)"><b>'+esc(e.naam)+'</b>'+ster(e)+'</label><div class="muted">'+esc(e.type)+' | '+esc(e.groep)+(e.mat.length?' | '+esc(e.mat.join(', ')):'')+(e.uit.length?' | niet bij: '+esc(e.uit.join(', ')):'')+'</div><div class="uitleg">'+esc(e.uitleg)+'</div>'+(e.nieuw?'<button class="btn rood klein" onclick="A.delEigen(\''+esc(e.id)+'\')">Verwijder</button>':'')+'</div>';
+  return '<div class="card"><label class="chk"><input type="checkbox" '+(aan?'checked':'')+' onchange="A.gebruik(\''+esc(e.id)+'\',this.checked)"><b>'+esc(e.naam)+'</b>'+ster(e)+'</label><div class="muted">'+esc(e.type)+' | '+esc(e.groep)+(e.mat.length?' | '+esc(e.mat.join(', ')):'')+(e.uit.length?' | niet bij: '+esc(e.uit.join(', ')):'')+'</div><div class="uitleg">'+esc(e.uitleg)+'</div>'+vidLink(e)+'<details class="noprint"><summary>Eigen video-link</summary><input type="text" placeholder="https://..." value="'+esc((S.videos&&S.videos[e.id])||'')+'" onchange="A.vid(\''+esc(e.id)+'\',this.value)"></details>'+(e.nieuw?'<button class="btn rood klein" onclick="A.delEigen(\''+esc(e.id)+'\')">Verwijder</button>':'')+'</div>';
  }).join('');
- h+='<div class="card"><h3>Nieuwe oefening toevoegen *</h3><label>Naam</label><input type="text" id="oNaam"><div class="grid2"><div><label>Type</label><select id="oType"><option value="kracht">kracht</option><option value="cardio">cardio</option><option value="stretch">stretch</option></select></div><div><label>Spiergroep</label><select id="oGroep">'+GROEPEN.concat(['cardio']).map(function(g){return '<option>'+g+'</option>';}).join('')+'</select></div></div><label>Materiaal</label>'+MATERIAAL.map(function(m){return '<label class="chk"><input type="checkbox" name="oMat" value="'+m[0]+'">'+m[1]+'</label>';}).join('')+'<label>Niet doen bij</label>'+BLESSURES.map(function(b){return '<label class="chk"><input type="checkbox" name="oUit" value="'+b+'">'+b+'</label>';}).join('')+'<label>Korte uitleg</label><textarea id="oUitleg" rows="2"></textarea><button class="btn" onclick="A.voegToe()">Toevoegen</button></div>';
+ h+='<div class="card"><h3>Nieuwe oefening toevoegen *</h3><label>Naam</label><input type="text" id="oNaam"><div class="grid2"><div><label>Type</label><select id="oType"><option value="kracht">kracht</option><option value="cardio">cardio</option><option value="stretch">stretch</option></select></div><div><label>Spiergroep</label><select id="oGroep">'+GROEPEN.concat(['cardio']).map(function(g){return '<option>'+g+'</option>';}).join('')+'</select></div></div><label>Materiaal</label>'+MATERIAAL.map(function(m){return '<label class="chk"><input type="checkbox" name="oMat" value="'+m[0]+'">'+m[1]+'</label>';}).join('')+'<label>Niet doen bij</label>'+BLESSURES.map(function(b){return '<label class="chk"><input type="checkbox" name="oUit" value="'+b+'">'+b+'</label>';}).join('')+'<label>Korte uitleg</label><textarea id="oUitleg" rows="2"></textarea><label>Video-link (optioneel, begint met https://)</label><input type="text" id="oVideo" placeholder="https://..."><button class="btn" onclick="A.voegToe()">Toevoegen</button></div>';
  return h;
 }
 
@@ -501,7 +521,8 @@ function vHulp(){
  '<p>Vul datum, gewicht, taille en eventueel vetpercentage in. Voor de BMI heb je je lengte in het profiel nodig. Meet het liefst op hetzelfde moment, bijvoorbeeld elke zaterdagochtend nuchter.</p>'+
  '<p>De BMI maakt geen onderscheid tussen vet en spieren. Taille en vetpercentage geven daarom een beter beeld als je spieren opbouwt en vet verliest.</p></details>'+
  '<details><summary>Oefeningen</summary>'+
- '<p>De lijst met alle oefeningen en een korte uitleg. Met het vinkje zet je een oefening aan of uit: een oefening die uitstaat wordt nooit gepland. Onderaan voeg je zelf oefeningen toe. Die krijgen een * zodat je ziet dat ze nieuw zijn. Geef bij nieuwe oefeningen ook aan bij welke blessure ze niet geschikt zijn.</p></details>'+
+ '<p>De lijst met alle oefeningen en een korte uitleg. Met het vinkje zet je een oefening aan of uit: een oefening die uitstaat wordt nooit gepland. Onderaan voeg je zelf oefeningen toe. Die krijgen een * zodat je ziet dat ze nieuw zijn. Geef bij nieuwe oefeningen ook aan bij welke blessure ze niet geschikt zijn.</p>'+
+ '<p><b>Video\'s:</b> bij de meeste oefeningen staat een knop met een voorbeeldvideo van MuscleWiki (Engelstalig, opent in een nieuw tabblad). Bij sommige stretches opent de knop een lijst waaruit je de juiste video kiest. Via Eigen video-link bij een oefening kan je zelf een andere link plaatsen, bijvoorbeeld van YouTube.</p></details>'+
  '<details><summary>Profiel</summary>'+
  '<p><b>Blessures:</b> vink aan wat pijn doet. Oefeningen die dat belasten worden niet meer gepland. Is een blessure genezen of komt er een bij, pas het dan hier aan.</p>'+
  '<p><b>Weekindeling:</b> kies je dagen in Jan Palfijn en het aantal thuistrainingen. Laat je Vaste thuisdagen leeg, dan kiest de app zelf goed verspreide dagen.</p>'+
@@ -519,6 +540,7 @@ function render(){
  v.innerHTML=VIEWS[tab]();
  n.innerHTML=TABS.map(function(t){return '<button class="'+(t[0]===tab?'on':'')+'" onclick="A.go(\''+t[0]+'\')">'+t[1]+'</button>';}).join('');
  var hl=document.getElementById('hello');if(hl)hl.textContent=S.profiel.naam||'';
+ var vs=document.getElementById('versie');if(vs)vs.textContent='Versie '+VERSIE+'.';
 }
 function go(t){tab=t;render();window.scrollTo(0,0);}
 
@@ -561,6 +583,12 @@ var A={
  },
  delMeting:function(id){if(!confirm('Deze meting verwijderen?'))return;S.metingen=S.metingen.filter(function(m){return m.id!==id;});bewaar();render();},
  filter:function(f){oefFilter=f;render();},
+ vid:function(id,v){
+  var u=safeUrl(v);
+  if(String(v||'').trim()&&!u){alert('Gebruik een link die met https:// begint.');return;}
+  if(u)S.videos[id]=u;else delete S.videos[id];
+  bewaar();render();
+ },
  gebruik:function(id,aan){var i=S.uit.indexOf(id);if(aan&&i>=0)S.uit.splice(i,1);if(!aan&&i<0)S.uit.push(id);bewaar();},
  delEigen:function(id){if(!confirm('Deze oefening verwijderen?'))return;S.eigen=S.eigen.filter(function(e){return e.id!==id;});bewaar();render();},
  voegToe:function(){
@@ -568,7 +596,7 @@ var A={
   if(!naam){alert('Geef de oefening een naam.');return;}
   function vals(n){return Array.prototype.map.call(document.querySelectorAll('input[name='+n+']:checked'),function(x){return x.value;});}
   var type=document.getElementById('oType').value;
-  var e=E('eigen_'+Date.now(),naam,type,document.getElementById('oGroep').value,vals('oMat'),vals('oUit'),document.getElementById('oUitleg').value.trim(),{nieuw:true});
+  var e=E('eigen_'+Date.now(),naam,type,document.getElementById('oGroep').value,vals('oMat'),vals('oUit'),document.getElementById('oUitleg').value.trim(),{nieuw:true,video:safeUrl(document.getElementById('oVideo').value)});
   S.eigen.push(e);bewaar();render();
  },
  pf:function(k,v){S.profiel[k]=v;bewaar();},
@@ -599,8 +627,7 @@ var A={
  },
  reset:function(){if(confirm('Alle gegevens wissen? Dit kan niet ongedaan gemaakt worden.')&&confirm('Zeker? Maak eerst een back-up als je die nog wil.')){S=standaard();try{localStorage.removeItem(KEY);}catch(e){}L=null;render();}}
 };
-window.A=A;
-render();
+window.A=A;render();
 })();
 </script>
 </body>
